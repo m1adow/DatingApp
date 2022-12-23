@@ -1,4 +1,4 @@
-﻿namespace DatingApp.Entities
+﻿namespace DatingApp.Api.Entities
 {
 	public class AppUser
 	{

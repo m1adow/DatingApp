@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace DatingApp.Data.Migrations
+namespace DatingApp.Api.Data.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

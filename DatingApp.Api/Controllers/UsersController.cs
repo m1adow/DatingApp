@@ -1,9 +1,9 @@
-﻿using DatingApp.Data;
-using DatingApp.Entities;
+﻿using DatingApp.Api.Data;
+using DatingApp.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace DatingApp.Controllers
+namespace DatingApp.Api.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
@@ -17,9 +17,9 @@ namespace DatingApp.Controllers
         }
 
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<AppUser>>> GetUsers() => await this.context.Users.ToListAsync();
-
+		public async Task<ActionResult<IEnumerable<AppUser>>> GetUsersAsync() => await this.context.Users.ToListAsync();
+         
 		[HttpGet("{id}")]
-		public async Task<ActionResult<AppUser>> GetUser(int id) => await context.Users.FindAsync(id);
+		public async Task<ActionResult<AppUser>> GetUserAsync(int id) => await this.context.Users.FindAsync(id);
 	}
 }
