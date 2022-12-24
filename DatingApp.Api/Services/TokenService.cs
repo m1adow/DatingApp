@@ -36,7 +36,7 @@ namespace DatingApp.Api.Services
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return tokenHandler.WriteToken(token);
+            return tokenHandler.WriteToken(token);  
         }
     }
 }
