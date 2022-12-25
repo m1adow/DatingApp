@@ -9,9 +9,9 @@
     </div>
 
     <div *ngIf="registerMode" class="container">
-        <div class="div row justify-content-centee">
+        <div class="div row justify-content-center">
             <div class="col-4">
-                <p>Register form goes here</p>
+                <app-register (cancelRegister)="cancelRegisterMode($event)"></app-register>
             </div>
         </div>
     </div>
