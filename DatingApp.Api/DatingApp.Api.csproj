@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +36,8 @@
     <None Remove="Extensions\" />
     <None Remove="Errors\" />
     <None Remove="Middleware\" />
+    <None Remove="AutoMapper.Extensions.Microsoft.DependencyInjection" />
+    <None Remove="Helper\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Entities\" />
@@ -45,5 +48,6 @@
     <Folder Include="Extensions\" />
     <Folder Include="Errors\" />
     <Folder Include="Middleware\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 </Project>
