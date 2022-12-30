@@ -16,27 +16,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseCors(corsBuilder => corsBuilder.AllowAnyHeader().AllowAnyMethod()
+app.UseCors(corsBuilder => corsBuilder.AllowAnyHeader().AllowAnyMethod().AllowCredentials()
     .WithOrigins("http://localhost:4200"));
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-/*using var scope = app.Services.CreateScope();
-var services = scope.ServiceProvider;
-try
-{
-    var context = services.GetRequiredService<DataContext>();
-    await context.Database.MigrateAsync();
-    await Seed.SeedUsers(context);
-}
-catch (Exception exc)
-{
-    var logger = services.GetRequiredService<ILogger>();
-    logger.LogError(exc, "An error ocurred during migration");
-}*/
 
 app.Run();
 
