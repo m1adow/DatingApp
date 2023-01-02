@@ -4,6 +4,7 @@ using DatingApp.Api.Data;
 using DatingApp.Api.DTOs;
 using DatingApp.Api.Entities;
 using DatingApp.Api.Extensions;
+using DatingApp.Api.Helpers;
 using DatingApp.Api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace DatingApp.Api.Controllers
         private readonly IMapper mapper;
         private readonly IPhotoService photoService;
 
-        public UsersController(IUserRepository userRepository, IMapper mapper, IPhotoService photoService)
+        public  UsersController(IUserRepository userRepository, IMapper mapper, IPhotoService photoService)
 		{
             this.userRepository = userRepository;
             this.mapper = mapper;
@@ -27,7 +28,12 @@ namespace DatingApp.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsersAsync() => Ok(await this.userRepository.GetMembersAsync());
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsersAsync(UserParams userParams)
+        {
+            var users = await this.userRepository.GetMembersAsync(userParams);
+            Response.AddPaginationHeader(new PaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages));
+            return Ok(users);
+        }
 
         [HttpGet("{username}")]
         public async Task<ActionResult<MemberDto>> GetUserAsync(string username) => await this.userRepository.GetMemberAsync(username);
