@@ -28,8 +28,16 @@ namespace DatingApp.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsersAsync(UserParams userParams)
+        public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsersAsync([FromQuery]UserParams userParams)
         {
+            var currentUser = await this.userRepository.GetUserByUserNameAsync(User.GetUserName());
+            userParams.CurrentUsername = currentUser.UserName;
+
+            if (!(userParams.Gender is string { Length: > 0 }))
+            {
+                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+            }
+
             var users = await this.userRepository.GetMembersAsync(userParams);
             Response.AddPaginationHeader(new PaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages));
             return Ok(users);
