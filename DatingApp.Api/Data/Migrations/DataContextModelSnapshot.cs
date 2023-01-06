@@ -126,7 +126,7 @@ namespace DatingApp.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DatingApp.Api.Entities.AppUser", "TargerUser")
+                    b.HasOne("DatingApp.Api.Entities.AppUser", "TargetUser")
                         .WithMany("LikedByUsers")
                         .HasForeignKey("TargetUserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -134,7 +134,7 @@ namespace DatingApp.Api.Data.Migrations
 
                     b.Navigation("SourceUser");
 
-                    b.Navigation("TargerUser");
+                    b.Navigation("TargetUser");
                 });
 
             modelBuilder.Entity("DatingApp.Api.Entities.AppUser", b =>

@@ -26,7 +26,7 @@ namespace DatingApp.Api.Data
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<UserLike>()
-                   .HasOne(s => s.TargerUser)
+                   .HasOne(s => s.TargetUser)
                    .WithMany(l => l.LikedByUsers)
                    .HasForeignKey(s => s.TargetUserId)
                    .OnDelete(DeleteBehavior.Cascade);
