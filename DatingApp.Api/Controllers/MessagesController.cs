@@ -34,7 +34,7 @@ namespace DatingApp.Api.Controllers
             var sender = await this.userRepository.GetUserByUserNameAsync(userName);
             var recipient = await this.userRepository.GetUserByUserNameAsync(createMessageDto.RecipientUserName);
 
-            if (recipient != null)
+            if (recipient == null)
             {
                 return NotFound();
             }
@@ -68,6 +68,14 @@ namespace DatingApp.Api.Controllers
             Response.AddPaginationHeader(new PaginationHeader(messages.CurrentPage, messages.PageSize, messages.TotalCount, messages.TotalPages));
 
             return messages;
+        }
+
+        [HttpGet("thread/{username}")]
+        public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessageThreadAsync(string username)
+        {
+            var currentUserName = User.GetUserName();
+
+            return Ok(await this.messageRepository.GetMessageThreadAsync(currentUserName, username));
         }
 	}
 }
