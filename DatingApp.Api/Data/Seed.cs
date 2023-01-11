@@ -2,15 +2,16 @@
 using System.Text;
 using System.Text.Json;
 using DatingApp.Api.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace DatingApp.Api.Data
 {
 	public class Seed
 	{
-		public static async Task SeedUsers(DataContext context)
+		public static async Task SeedUsersAsync(UserManager<AppUser> userManager)
 		{
-			if (await context.Users.AnyAsync())
+			if (await userManager.Users.AnyAsync())
 			{
 				return;
 			}
@@ -23,17 +24,10 @@ namespace DatingApp.Api.Data
 
 			foreach (var user in users)
 			{
-				using var hmac = new HMACSHA512();
-
 				user.UserName = user.UserName.ToLower();
-				user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
-				user.PasswordSalt = hmac.Key;
 
-
-				context.Users.Add(user);
-			}
-
-			await context.SaveChangesAsync();
+				await userManager.CreateAsync(user, "Pa$$w0rd");
+			}	
 		} 
 	}
 }

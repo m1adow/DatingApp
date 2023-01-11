@@ -31,23 +31,18 @@ namespace DatingApp.Api.Controllers
 
             var user = this.mapper.Map<AppUser>(registerDto);
 
-            using (var hmac = new HMACSHA512())
+            user.UserName = registerDto.UserName.ToLower();
+
+            await this.context.AddAsync(user);
+            await this.context.SaveChangesAsync();
+
+            return new UserDto
             {
-                user.UserName = registerDto.UserName.ToLower();
-                user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
-                user.PasswordSalt = hmac.Key;
-
-                await this.context.AddAsync(user);
-                await this.context.SaveChangesAsync();
-
-                return new UserDto
-                {
-                    UserName = user.UserName,
-                    Token = this.tokenService.CreateToken(user),
-                    KnownAs = user.KnownAs,
-                    Gender = user.Gender
-                };
-            }
+                UserName = user.UserName,
+                Token = this.tokenService.CreateToken(user),
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
+            };
         }
 
         [HttpPost("login")]
@@ -57,17 +52,6 @@ namespace DatingApp.Api.Controllers
 
             if (user == null)
                 return Unauthorized("Invalid username");
-
-            using (var hmac = new HMACSHA512(user.PasswordSalt))
-            {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
-
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != user.PasswordHash[i])
-                        return Unauthorized("Invalid password");
-                }
-            }
 
             return new UserDto
             {
