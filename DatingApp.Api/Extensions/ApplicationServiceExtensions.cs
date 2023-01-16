@@ -27,6 +27,7 @@ namespace DatingApp.Api.Extensions
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             services.AddScoped<LogUserActivity>();
+            services.AddSignalR();
 
             return services;
         }
