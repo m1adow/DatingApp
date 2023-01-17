@@ -1,16 +1,25 @@
-﻿using DatingApp.Api.Extensions;
+﻿using AutoMapper;
+using DatingApp.Api.DTOs;
+using DatingApp.Api.Entities;
+using DatingApp.Api.Extensions;
 using DatingApp.Api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace DatingApp.Api.SignalR
 {
+    [Authorize]
 	public class MessageHub : Hub
 	{
         private readonly IMessageRepository messageRepository;
+        private readonly IUserRepository userRepository;
+        private readonly IMapper mapper;
 
-        public MessageHub(IMessageRepository messageRepository)
+        public MessageHub(IMessageRepository messageRepository, IUserRepository userRepository, IMapper mapper)
 		{
             this.messageRepository = messageRepository;
+            this.userRepository = userRepository;
+            this.mapper = mapper;
         }
 
         public override async Task OnConnectedAsync()
@@ -28,6 +37,41 @@ namespace DatingApp.Api.SignalR
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task SendMessageAsync(CreateMessageDto createMessageDto)
+        {
+            var userName = Context.User.GetUserName();
+
+            if (userName == createMessageDto.RecipientUserName.ToLower())
+            {
+                throw new HubException("You cannot send messages to yourself");
+            }
+
+            var sender = await this.userRepository.GetUserByUserNameAsync(userName);
+            var recipient = await this.userRepository.GetUserByUserNameAsync(createMessageDto.RecipientUserName);
+
+            if (recipient == null)
+            {
+                throw new HubException("Not found user");
+            }
+
+            var message = new Message
+            {
+                Sender = sender,
+                Recipient = recipient,
+                SenderUserName = sender.UserName,
+                RecipientUserName = recipient.UserName,
+                Content = createMessageDto.Content
+            };
+
+            this.messageRepository.AddMessage(message);
+
+            if (await this.messageRepository.SaveAllAsync())
+            {
+                var group = GetGroupName(sender.UserName, recipient.UserName);
+                await Clients.Group(group).SendAsync("NewMessage", this.mapper.Map<MessageDto>(message));
+            }
         }
 
         private string GetGroupName(string caller, string other)
