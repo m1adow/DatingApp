@@ -19,6 +19,11 @@ namespace DatingApp.Api.Data
             this.mapper = mapper;
         }
 
+        public void AddGroup(Group group)
+        {
+            this.context.Groups.Add(group);
+        }
+
         public void AddMessage(Message message)
         {
             this.context.Messages.Add(message);
@@ -29,9 +34,20 @@ namespace DatingApp.Api.Data
             this.context.Messages.Remove(message);
         }
 
+        public async Task<Connection> GetConnectionAsync(string connectionId)
+        {
+            return await this.context.Connections.FindAsync(connectionId);
+        }
+
         public async Task<Message> GetMessageAsync(int id)
         {
             return await this.context.Messages.FindAsync(id);
+        }
+
+        public async Task<Group> GetMessageGroupAsync(string groupName)
+        {
+            return await this.context.Groups.Include(x => x.Connections)
+                                            .FirstOrDefaultAsync(x => x.Name == groupName);
         }
 
         public async Task<PagedList<MessageDto>> GetMessagesForUserAsync(MessageParams messageParams)
@@ -79,6 +95,11 @@ namespace DatingApp.Api.Data
             }
 
             return this.mapper.Map<IEnumerable<MessageDto>>(messages);
+        }
+
+        public void RemoveConnection(Connection connection)
+        {
+            this.context.Connections.Remove(connection);
         }
 
         public async Task<bool> SaveAllAsync()
