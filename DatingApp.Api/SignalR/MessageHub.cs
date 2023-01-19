@@ -14,12 +14,14 @@ namespace DatingApp.Api.SignalR
         private readonly IMessageRepository messageRepository;
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
+        private readonly IHubContext<PresenceHub> presenceHub;
 
-        public MessageHub(IMessageRepository messageRepository, IUserRepository userRepository, IMapper mapper)
+        public MessageHub(IMessageRepository messageRepository, IUserRepository userRepository, IMapper mapper, IHubContext<PresenceHub> presenceHub)
 		{
             this.messageRepository = messageRepository;
             this.userRepository = userRepository;
             this.mapper = mapper;
+            this.presenceHub = presenceHub;
         }
 
         public override async Task OnConnectedAsync()
@@ -74,6 +76,15 @@ namespace DatingApp.Api.SignalR
             if (group.Connections.Any(x => x.Username == recipient.UserName))
             {
                 message.DateRead = DateTime.UtcNow;
+            }
+            else
+            {
+                var connections = await PresenceTracker.GetConnectionsForUserAsync(recipient.UserName);
+                if (connections != null)
+                {
+                    await this.presenceHub.Clients.Clients(connections).SendAsync("NewMessageReceived",
+                        new { userName = sender.UserName, knownAs = sender.KnownAs });
+                }
             }
 
             this.messageRepository.AddMessage(message);

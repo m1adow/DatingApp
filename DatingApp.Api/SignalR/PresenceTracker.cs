@@ -52,6 +52,18 @@
 
 			return Task.FromResult(onlineUsers);
 		}
+
+		public static Task<List<string>> GetConnectionsForUserAsync(string userName)
+		{
+			List<string> connectionIds;
+
+			lock (OnlineUsers)
+			{
+				connectionIds = OnlineUsers.GetValueOrDefault(userName);
+			}
+
+			return Task.FromResult(connectionIds);
+		}
 	}
 }
 
