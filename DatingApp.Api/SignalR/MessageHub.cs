@@ -9,15 +9,15 @@ using Microsoft.AspNetCore.SignalR;
 namespace DatingApp.Api.SignalR
 {
     [Authorize]
-	public class MessageHub : Hub
-	{
+    public class MessageHub : Hub
+    {
         private readonly IMessageRepository messageRepository;
         private readonly IUserRepository userRepository;
         private readonly IMapper mapper;
         private readonly IHubContext<PresenceHub> presenceHub;
 
         public MessageHub(IMessageRepository messageRepository, IUserRepository userRepository, IMapper mapper, IHubContext<PresenceHub> presenceHub)
-		{
+        {
             this.messageRepository = messageRepository;
             this.userRepository = userRepository;
             this.mapper = mapper;
@@ -30,16 +30,19 @@ namespace DatingApp.Api.SignalR
             var otherUser = httpContext.Request.Query["user"];
             var groupName = GetGroupName(Context.User.GetUserName(), otherUser);
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-            await AddToGroupAsync(groupName);
+            var group = await AddToGroupAsync(groupName);
+
+            await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
             var messages = await this.messageRepository.GetMessageThreadAsync(Context.User.GetUserName(), otherUser);
 
-            await Clients.Group(groupName).SendAsync("ReceiveMessageThread", messages);
+            await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            await RemoveFromMessageGroup();
+            var group = await RemoveFromMessageGroup();
+            await Clients.Group(group.Name).SendAsync("UpdatedGroup");
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -101,7 +104,7 @@ namespace DatingApp.Api.SignalR
             return stringCompare ? $"{caller}-{other}" : $"{other}-{caller}";
         }
 
-        private async Task<bool> AddToGroupAsync(string groupName)
+        private async Task<Group> AddToGroupAsync(string groupName)
         {
             var group = await this.messageRepository.GetMessageGroupAsync(groupName);
             var connection = new Connection(Context.ConnectionId, Context.User.GetUserName());
@@ -114,14 +117,26 @@ namespace DatingApp.Api.SignalR
 
             group.Connections.Add(connection);
 
-            return await this.messageRepository.SaveAllAsync();
+            if (await this.messageRepository.SaveAllAsync())
+            {
+                return group;
+            }
+
+            throw new HubException("Failed to add to group");
         }
 
-        private async Task RemoveFromMessageGroup()
+        private async Task<Group> RemoveFromMessageGroup()
         {
-            var connection = await this.messageRepository.GetConnectionAsync(Context.ConnectionId);
+            var group = await this.messageRepository.GetGroupForConnectionAsync(Context.ConnectionId);
+            var connection = group.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
             this.messageRepository.RemoveConnection(connection);
-            await this.messageRepository.SaveAllAsync();
+
+            if (await this.messageRepository.SaveAllAsync())
+            {
+                return group;
+            }
+
+            throw new HubException("Failed to remove from group");
         }
     }
 }
