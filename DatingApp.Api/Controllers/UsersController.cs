@@ -30,12 +30,11 @@ namespace DatingApp.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetUsersAsync([FromQuery]UserParams userParams)
         {
-            var currentUser = await this.uow.UserRepository.GetUserByUserNameAsync(User.GetUserName());
-            userParams.CurrentUsername = currentUser.UserName;
+            var gender = await this.uow.UserRepository.GetUserGenderAsync(User.GetUserName());
 
             if (!(userParams.Gender is string { Length: > 0 }))
             {
-                userParams.Gender = currentUser.Gender == "male" ? "female" : "male";
+                userParams.Gender = gender == "male" ? "female" : "male";
             }
 
             var users = await this.uow.UserRepository.GetMembersAsync(userParams);

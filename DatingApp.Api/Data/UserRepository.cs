@@ -54,6 +54,11 @@ namespace DatingApp.Api.Data
             => await this.context.Users.Include(p => p.Photos).ToListAsync();
 
         public void Update(AppUser user) => this.context.Entry(user).State = EntityState.Modified;
+
+        public async Task<string> GetUserGenderAsync(string userName) => await this.context.Users
+                                                                                            .Where(x => x.UserName == userName)
+                                                                                            .Select(x => x.Gender)
+                                                                                            .FirstOrDefaultAsync();
     }
 }
 

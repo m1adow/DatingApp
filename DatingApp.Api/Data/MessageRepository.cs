@@ -77,19 +77,17 @@ namespace DatingApp.Api.Data
 
         public async Task<IEnumerable<MessageDto>> GetMessageThreadAsync(string currentUserName, string recipientUserName)
         {
-            var messages = await this.context.Messages
-                                             .Include(u => u.Sender).ThenInclude(p => p.Photos)
-                                             .Include(u => u.Recipient).ThenInclude(p => p.Photos)
-                                             .Where(m => m.RecipientUserName == currentUserName
-                                                      && !m.RecipientDeleted
-                                                      && m.SenderUserName == recipientUserName
-                                                      || m.RecipientUserName == recipientUserName
-                                                      && !m.SenderDeleted
-                                                      && m.SenderUserName == currentUserName)
-                                             .OrderBy(m => m.MessageSent)
-                                             .ToListAsync();
+            var query = this.context.Messages
+                                    .Where(m => m.RecipientUserName == currentUserName
+                                            && !m.RecipientDeleted
+                                            && m.SenderUserName == recipientUserName
+                                            || m.RecipientUserName == recipientUserName
+                                            && !m.SenderDeleted
+                                            && m.SenderUserName == currentUserName)
+                                    .OrderBy(m => m.MessageSent)
+                                    .AsQueryable();
 
-            var unreadMessages = messages.Where(m => m.DateRead == null && m.RecipientUserName == currentUserName).ToList();
+            var unreadMessages = query.Where(m => m.DateRead == null && m.RecipientUserName == currentUserName).ToList();
 
             if (unreadMessages.Any())
             {
@@ -99,7 +97,7 @@ namespace DatingApp.Api.Data
                 }
             }
 
-            return this.mapper.Map<IEnumerable<MessageDto>>(messages);
+            return await query.ProjectTo<MessageDto>(this.mapper.ConfigurationProvider).ToListAsync();
         }
 
         public void RemoveConnection(Connection connection)
