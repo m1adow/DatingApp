@@ -97,8 +97,6 @@ namespace DatingApp.Api.Data
                 {
                     message.DateRead = DateTime.UtcNow;
                 }
-
-                await this.context.SaveChangesAsync();
             }
 
             return this.mapper.Map<IEnumerable<MessageDto>>(messages);
@@ -107,11 +105,6 @@ namespace DatingApp.Api.Data
         public void RemoveConnection(Connection connection)
         {
             this.context.Connections.Remove(connection);
-        }
-
-        public async Task<bool> SaveAllAsync()
-        {
-            return await this.context.SaveChangesAsync() > 0;
         }
     }
 }

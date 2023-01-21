@@ -11,15 +11,13 @@ namespace DatingApp.Api.SignalR
     [Authorize]
     public class MessageHub : Hub
     {
-        private readonly IMessageRepository messageRepository;
-        private readonly IUserRepository userRepository;
+        private readonly IUnitOfWork uow;
         private readonly IMapper mapper;
         private readonly IHubContext<PresenceHub> presenceHub;
 
-        public MessageHub(IMessageRepository messageRepository, IUserRepository userRepository, IMapper mapper, IHubContext<PresenceHub> presenceHub)
+        public MessageHub(IUnitOfWork uow, IMapper mapper, IHubContext<PresenceHub> presenceHub)
         {
-            this.messageRepository = messageRepository;
-            this.userRepository = userRepository;
+            this.uow = uow;
             this.mapper = mapper;
             this.presenceHub = presenceHub;
         }
@@ -34,7 +32,12 @@ namespace DatingApp.Api.SignalR
 
             await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
-            var messages = await this.messageRepository.GetMessageThreadAsync(Context.User.GetUserName(), otherUser);
+            var messages = await this.uow.MessageRepository.GetMessageThreadAsync(Context.User.GetUserName(), otherUser);
+
+            if (this.uow.HasChanges())
+            {
+                await this.uow.CompleteAsync();
+            }
 
             await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
         }
@@ -55,8 +58,8 @@ namespace DatingApp.Api.SignalR
                 throw new HubException("You cannot send messages to yourself");
             }
 
-            var sender = await this.userRepository.GetUserByUserNameAsync(userName);
-            var recipient = await this.userRepository.GetUserByUserNameAsync(createMessageDto.RecipientUserName);
+            var sender = await this.uow.UserRepository.GetUserByUserNameAsync(userName);
+            var recipient = await this.uow.UserRepository.GetUserByUserNameAsync(createMessageDto.RecipientUserName);
 
             if (recipient == null)
             {
@@ -74,7 +77,7 @@ namespace DatingApp.Api.SignalR
 
             var groupName = GetGroupName(sender.UserName, recipient.UserName);
 
-            var group = await this.messageRepository.GetMessageGroupAsync(groupName);
+            var group = await this.uow.MessageRepository.GetMessageGroupAsync(groupName);
 
             if (group.Connections.Any(x => x.Username == recipient.UserName))
             {
@@ -90,9 +93,9 @@ namespace DatingApp.Api.SignalR
                 }
             }
 
-            this.messageRepository.AddMessage(message);
+            this.uow.MessageRepository.AddMessage(message);
 
-            if (await this.messageRepository.SaveAllAsync())
+            if (await this.uow.CompleteAsync())
             {
                 await Clients.Group(groupName).SendAsync("NewMessage", this.mapper.Map<MessageDto>(message));
             }
@@ -106,18 +109,18 @@ namespace DatingApp.Api.SignalR
 
         private async Task<Group> AddToGroupAsync(string groupName)
         {
-            var group = await this.messageRepository.GetMessageGroupAsync(groupName);
+            var group = await this.uow.MessageRepository.GetMessageGroupAsync(groupName);
             var connection = new Connection(Context.ConnectionId, Context.User.GetUserName());
 
             if (group == null)
             {
                 group = new Group(groupName);
-                this.messageRepository.AddGroup(group);
+                this.uow.MessageRepository.AddGroup(group);
             }
 
             group.Connections.Add(connection);
 
-            if (await this.messageRepository.SaveAllAsync())
+            if (await this.uow.CompleteAsync())
             {
                 return group;
             }
@@ -127,11 +130,11 @@ namespace DatingApp.Api.SignalR
 
         private async Task<Group> RemoveFromMessageGroup()
         {
-            var group = await this.messageRepository.GetGroupForConnectionAsync(Context.ConnectionId);
+            var group = await this.uow.MessageRepository.GetGroupForConnectionAsync(Context.ConnectionId);
             var connection = group.Connections.FirstOrDefault(x => x.ConnectionId == Context.ConnectionId);
-            this.messageRepository.RemoveConnection(connection);
+            this.uow.MessageRepository.RemoveConnection(connection);
 
-            if (await this.messageRepository.SaveAllAsync())
+            if (await this.uow.CompleteAsync())
             {
                 return group;
             }

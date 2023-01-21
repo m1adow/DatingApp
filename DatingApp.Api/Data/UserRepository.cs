@@ -53,8 +53,6 @@ namespace DatingApp.Api.Data
         public async Task<IEnumerable<AppUser>> GetUsersAsync()
             => await this.context.Users.Include(p => p.Photos).ToListAsync();
 
-        public async Task<bool> SaveAllAsync() => await this.context.SaveChangesAsync() > 0;
-
         public void Update(AppUser user) => this.context.Entry(user).State = EntityState.Modified;
     }
 }
