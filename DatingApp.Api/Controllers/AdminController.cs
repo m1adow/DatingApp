@@ -9,10 +9,12 @@ namespace DatingApp.Api.Controllers
 	public class AdminController : BaseApiController
 	{
 		private readonly UserManager<AppUser> userManager;
+		private readonly IUnitOfWork uow;
 
-		public AdminController(UserManager<AppUser> userManager)
+		public AdminController(UserManager<AppUser> userManager, IUnitOfWork uow)
 		{
 			this.userManager = userManager;
+			this.uow = uow;
 		}
 
 		[Authorize(Policy = "RequireAdminRole")]
@@ -71,9 +73,10 @@ namespace DatingApp.Api.Controllers
 
 		[Authorize(Policy = "ModeratePhotoRole")]
 		[HttpGet("photos-to-moderate")]
-		public ActionResult GetPhotoForModeration()
+		public Task<ActionResult<UserDto>> GetPhotoForModerationAsync()
 		{
-			return Ok("Admins or moderators can see this");
+			//return this.uow.
+			return Ok();
 		}
 	}
 }
