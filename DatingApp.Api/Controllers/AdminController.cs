@@ -82,18 +82,18 @@ namespace DatingApp.Api.Controllers
         [HttpGet("photos-to-moderate")]
         public async Task<ActionResult<IEnumerable<MemberDto>>> GetPhotoForModerationAsync()
         {
-            var membersWithNotApprovedPhotos = await this.uow.UserRepository.GetMembersApprovalUserPhotosAsync();
+            var users = await this.uow.UserRepository.GetUsersAsync();
 
-            if (!membersWithNotApprovedPhotos.Any())
+            if (!users.Any())
             {
                 return NoContent();
             }
 
-            return Ok(membersWithNotApprovedPhotos.Where(m => m.Photos.Count > 0).Select(m => new
+            return Ok(users.Where(m => m.Photos.Count > 0 && m.Photos.Where(p => !p.IsApproved).Count() > 0).Select(m => new
             {
                 username = m.UserName,
                 knownAs = m.KnownAs,
-                photos = m.Photos
+                photos = this.mapper.ProjectTo<PhotoDto>(m.Photos.Where(p => !p.IsApproved).AsQueryable(), this.mapper.ConfigurationProvider)
             }));
         }
 

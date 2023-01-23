@@ -1,0 +1,12 @@
+<div class="modal-header">
+    <h4 class="modal-title pull-left">Approving photos for {{username}}</h4>
+    <button class="close-btn" (click)="close()"><i class="fa fa-close"></i></button>
+</div>
+<div class="modal-body">
+    <img src="{{photo?.url}}" alt="user photo"
+        width="50%" height="50%">
+</div>
+<div class="modal-footer">
+    <button class="btn btn-success" (click)="approvePhoto(true)">Approve</button>
+    <button class="btn btn-danger" (click)="approvePhoto(false)">Decline</button>
+</div>
