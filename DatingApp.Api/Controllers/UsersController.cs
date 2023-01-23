@@ -66,7 +66,7 @@ namespace DatingApp.Api.Controllers
         }
 
         [HttpPost("add-photo")]
-        public async Task<ActionResult<PhotoDto>> AddPhoto(IFormFile file)
+        public async Task<ActionResult<PhotoDto>> AddPhotoAsync(IFormFile file)
         {
             var user = await this.uow.UserRepository.GetUserByUserNameAsync(User.GetUserName());
 
@@ -86,7 +86,8 @@ namespace DatingApp.Api.Controllers
             {
                 Url = result.SecureUrl.AbsoluteUri,
                 PublicId = result.PublicId,
-                IsMain = user.Photos.Count == 0
+                IsMain = false,
+                IsApproved = false
             };
 
             user.Photos.Add(photo);
@@ -121,6 +122,11 @@ namespace DatingApp.Api.Controllers
             if (photo.IsMain)
             {
                 return BadRequest("This is already your main photo");
+            }
+
+            if (photo.IsApproved) 
+            {
+                return BadRequest("You cannot set not approved photo as main");
             }
 
             var currentMain = user.Photos.FirstOrDefault(p => p.IsMain);

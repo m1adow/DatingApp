@@ -1,1 +1,27 @@
-<p>photo-management works!</p>
+<div class="mt-2" *ngIf="!photoUsers || photoUsers.length <= 0">
+    <h4>No photos to approve</h4>
+</div>
+
+<div class="mt-2 row" *ngIf="photoUsers && photoUsers.length > 0">
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="width: 40%;">Username</th>
+                <th style="width: 40%;">Photo to approve</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let photoUser of photoUsers">
+                <td>{{photoUser.knownAs}}</td>
+                <td>
+                    <ul>
+                        <li class="ms-1" style="display: inline" *ngFor="let photo of photoUser.photos">
+                            <img width="25 px" height="25 px" src="{{photo.url}}" alt="user photo"
+                                (click)="openApprovePhotosModal(photoUser.username, photo)">
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

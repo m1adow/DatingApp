@@ -59,6 +59,14 @@ namespace DatingApp.Api.Data
                                                                                             .Where(x => x.UserName == userName)
                                                                                             .Select(x => x.Gender)
                                                                                             .FirstOrDefaultAsync();
+
+        public async Task<Photo> GetPhotoByIdAsync(string userName, int id)
+        {
+            return await this.context.Users.Where(u => u.UserName == userName)
+                                            .Include(u => u.Photos)
+                                            .Select(u => u.Photos.FirstOrDefault(p => p.Id == id))
+                                            .FirstOrDefaultAsync();
+        }
     }
 }
 
