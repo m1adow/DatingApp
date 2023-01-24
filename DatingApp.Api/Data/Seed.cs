@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using DatingApp.Api.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +7,12 @@ namespace DatingApp.Api.Data
 {
     public class Seed
     {
+        public static async Task ClearConnectionsAsync(DataContext context)
+        {
+            context.Connections.RemoveRange(context.Connections);
+            await context.SaveChangesAsync();
+        }
+
         public static async Task SeedUsersAsync(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
         {
             if (await userManager.Users.AnyAsync())
@@ -37,6 +41,8 @@ namespace DatingApp.Api.Data
             foreach (var user in users)
             {
                 user.UserName = user.UserName.ToLower();
+                user.Created = DateTime.SpecifyKind(user.Created, DateTimeKind.Utc);
+                user.LastActive = DateTime.SpecifyKind(user.LastActive, DateTimeKind.Utc);
                 await userManager.CreateAsync(user, "Pa$$w0rd");
                 await userManager.AddToRoleAsync(user, "Member");   
             }

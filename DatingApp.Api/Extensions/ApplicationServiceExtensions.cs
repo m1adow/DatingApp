@@ -13,7 +13,7 @@ namespace DatingApp.Api.Extensions
 		{
             services.AddDbContext<DataContext>(options =>
             {
-                options.UseSqlite(configuration.GetConnectionString("DefaultConnection"));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddMvc(options =>
             {
